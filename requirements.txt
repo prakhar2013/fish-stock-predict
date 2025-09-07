@@ -4,4 +4,6 @@ joblib
 numpy
 shap
 matplotlib
+xgboost
+
 seaborn
