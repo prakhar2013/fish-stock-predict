@@ -130,6 +130,7 @@ footer {
 }
 </style>
 """, unsafe_allow_html=True)
+
 # --- Model and Data Loading with Caching ---
 @st.cache_data
 def load_data(path):
@@ -212,10 +213,16 @@ with chart_cols[1]:
     st.subheader("Monthly Catch Distribution")
     monthly_catch = df_viz.groupby('Month')['Fisheries_Catch_tonnes'].sum()
     
+    # --- FIX: Re-index to ensure all 12 months are present ---
+    all_months = pd.Series(0, index=range(1, 13))
+    monthly_catch = monthly_catch.add(all_months, fill_value=0)
+    monthly_catch = monthly_catch.sort_index()
+
     # Use calendar.month_name to get month names
     month_names = [calendar.month_name[i] for i in monthly_catch.index]
     
     fig, ax = plt.subplots(figsize=(8, 8))
+    
     # Corrected method for setting colors from a colormap
     colors = plt.get_cmap('Spectral')(np.linspace(0.1, 0.9, len(monthly_catch)))
     ax.pie(monthly_catch, labels=month_names, autopct='%1.1f%%', startangle=90, colors=colors)
@@ -338,9 +345,9 @@ with col2:
         
         st.info("This plot ranks features by their importance in driving the prediction. A positive SHAP value (red) indicates the feature increased the predicted catch, while a negative value (blue) decreased it.")
 
-# --- Custom Footer ---
-
-st.markdown("<br>", unsafe_allow_html=True)
+# --- NEW: Correlation Heatmap Section ---
+st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+st.markdown("<h2 class='sub-header'>📊 Data Insights: Feature Relationships</h2>", unsafe_allow_html=True)
 
 st.subheader("Correlation Heatmap of Features")
 # Select only the numerical columns for the heatmap
@@ -359,7 +366,7 @@ ax.set_title("Feature Correlation Matrix")
 st.pyplot(fig)
 st.info("This heatmap shows the correlation between different environmental factors and the historical fish catch. A value close to 1 or -1 indicates a strong relationship.")
 
-st.markdown("<br>", unsafe_allow_html=True)
+# --- Custom Footer ---
 st.markdown("""
 <div class="app-footer">
     <p>Powered by Bluenetics | &copy; 2025</p>
